@@ -1,8 +1,13 @@
 package hex;
 
 import water.Key;
+import water.MRTask;
 import water.fvec.Chunk;
+import water.fvec.Vec;
 import water.util.*;
+
+import java.util.Arrays;
+import java.util.HashSet;
 
 /** Supervised Model
  *  There is a response column used in training.
@@ -116,5 +121,27 @@ public abstract class SupervisedModel<M extends SupervisedModel<M,P,O>, P extend
     JCodeGen.toStaticVar(sb, "MODEL_CLASS_DISTRIB", _output._modelClassDist, "Class distribution used for model building");
     return sb;
   }
+
+  /**
+   * Create thresholds from actual labels and predicted probabilities
+   * @param vactual actual labels
+   * @param vpredict predicted probabilities
+   * @return A set of sorted thresholds that span the space of meaningful probabilities (e.g., for use in AUC computation)
+   */
+  static public float[] makeThresholds(Vec vactual, Vec vpredict) {
+    HashSet hs = new HashSet();
+    final int bins = (int) Math.min(vpredict.length(), 200l);
+    final long stride = Math.max(vpredict.length() / bins, 1);
+    for (int i = 0; i < bins; ++i)
+      hs.add(new Float(vpredict.at(i * stride)));
+    for (int i = 0; i < 51; ++i) hs.add(new Float(i / 50.)); //always add 0.02-spaced thresholds from 0 to 1
+    // created sorted vector of unique thresholds
+    float[] thresholds = new float[hs.size()];
+    int i = 0;
+    for (Object h : hs) thresholds[i++] = (Float) h;
+    Arrays.sort(thresholds);
+    return thresholds;
+  }
+
 }
 

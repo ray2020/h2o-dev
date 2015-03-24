@@ -65,7 +65,7 @@ public class GLMModel extends SupervisedModel<GLMModel,GLMModel.GLMParameters,GL
     }
 
     @Override
-    public ModelMetrics makeModelMetrics(Model m, Frame f, double sigma) {
+    public ModelMetrics makeModelMetrics(Model m, Frame f, Vec pred, double sigma) {
       GLMModel gm = (GLMModel)m;
       assert gm._parms._family == Family.binomial;
       ConfusionMatrix[] cms = new ConfusionMatrix[_cms.length];

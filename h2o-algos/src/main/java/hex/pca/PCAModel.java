@@ -12,8 +12,6 @@ import water.fvec.Frame;
 import water.fvec.Vec;
 import water.util.TwoDimTable;
 
-import java.util.Arrays;
-
 public class PCAModel extends Model<PCAModel,PCAModel.PCAParameters,PCAModel.PCAOutput> {
 
   public static class PCAParameters extends Model.Parameters {
@@ -96,7 +94,7 @@ public class PCAModel extends Model<PCAModel,PCAModel.PCAParameters,PCAModel.PCA
       public double[] perRow(double[] dataRow, float[] preds, Model m) { return dataRow; }
 
       @Override
-      public ModelMetrics makeModelMetrics(Model m, Frame f, double sigma) {
+      public ModelMetrics makeModelMetrics(Model m, Frame f, Vec pred, double sigma) {
         return m._output.addModelMetrics(new ModelMetricsPCA(m, f));
       }
     }
@@ -126,7 +124,7 @@ public class PCAModel extends Model<PCAModel,PCAModel.PCAParameters,PCAModel.PCA
 
     f = new Frame((null == destination_key ? Key.make() : Key.make(destination_key)), f.names(), f.vecs());
     DKV.put(f);
-    makeMetricBuilder(null).makeModelMetrics(this, orig, Double.NaN);
+    makeMetricBuilder(null).makeModelMetrics(this, orig, null, Double.NaN);
     return f;
   }
 

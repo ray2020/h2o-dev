@@ -2,6 +2,7 @@ package hex;
 
 import water.*;
 import water.fvec.Frame;
+import water.fvec.Vec;
 import water.util.TwoDimTable;
 
 import java.util.Arrays;
@@ -150,6 +151,6 @@ public class ModelMetrics extends Keyed<ModelMetrics> {
 
     public void postGlobal() {}
     // Having computed a MetricBuilder, this method fills in a ModelMetrics
-    public abstract ModelMetrics makeModelMetrics( Model m, Frame f, double sigma);
+    public abstract ModelMetrics makeModelMetrics(Model m, Frame f, Vec pred, double sigma);
   }
 }

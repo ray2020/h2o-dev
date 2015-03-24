@@ -501,8 +501,8 @@ public abstract class Model<M extends Model<M,P,O>, P extends Model.Parameters, 
     domains[0] = nc==1 ? null : adaptFrm.lastVec().domain();
     // Score the dataset, building the class distribution & predictions
     BigScore bs = new BigScore(domains[0],ncols).doAll(ncols,adaptFrm);
-    bs._mb.makeModelMetrics(this,fr, this instanceof SupervisedModel ? adaptFrm.lastVec().sigma() : Double.NaN);
     Frame res = bs.outputFrame((null == destination_key ? Key.make() : Key.make(destination_key)),names,domains);
+    bs._mb.makeModelMetrics(this, fr, _output.nclasses() == 2 ? res.vecs()[2] : null, this instanceof SupervisedModel ? adaptFrm.lastVec().sigma() : Double.NaN);
     DKV.put(res);
     return res;
   }

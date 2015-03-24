@@ -2,6 +2,7 @@ package hex;
 
 import water.H2O;
 import water.fvec.Frame;
+import water.fvec.Vec;
 
 public class ModelMetricsSupervised extends ModelMetrics {
   public double _sigma;   // stddev of the response (if any)
@@ -34,6 +35,6 @@ public class ModelMetricsSupervised extends ModelMetrics {
       throw H2O.unimpl("Subclasses must implement perRow.");
     }
 
-    @Override public ModelMetrics makeModelMetrics(Model m, Frame f, double sigma) { return null; }
+    @Override public ModelMetrics makeModelMetrics(Model m, Frame f, Vec pred, double sigma) { return null; }
   }
 }

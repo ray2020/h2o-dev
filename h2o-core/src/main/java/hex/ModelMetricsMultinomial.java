@@ -2,6 +2,7 @@ package hex;
 
 import water.exceptions.H2OIllegalArgumentException;
 import water.fvec.Frame;
+import water.fvec.Vec;
 import water.util.ArrayUtils;
 
 public class ModelMetricsMultinomial extends ModelMetricsSupervised {
@@ -111,7 +112,7 @@ public class ModelMetricsMultinomial extends ModelMetricsSupervised {
       _logloss += ((MetricBuilderMultinomial) mb)._logloss;
     }
 
-    public ModelMetrics makeModelMetrics( Model m, Frame f, double sigma) {
+    public ModelMetrics makeModelMetrics(Model m, Frame f, Vec pred, double sigma) {
       if (sigma != 0) {
         ConfusionMatrix cm = new ConfusionMatrix(_cm, _domain);
         float[] hr = new float[_K];

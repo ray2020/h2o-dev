@@ -1,7 +1,10 @@
 package hex;
 
+import water.MRTask;
 import water.exceptions.H2OIllegalArgumentException;
+import water.fvec.Chunk;
 import water.fvec.Frame;
+import water.fvec.Vec;
 import water.util.ArrayUtils;
 import water.util.ModelUtils;
 
@@ -37,7 +40,7 @@ public class ModelMetricsBinomial extends ModelMetricsSupervised {
   }
 
   public static class MetricBuilderBinomial extends MetricBuilderSupervised {
-    protected final float[] _thresholds;
+    protected float[] _thresholds;
     protected long[/*nthreshes*/][/*nclasses*/][/*nclasses*/] _cms; // Confusion Matric(es)
     double _logloss;
     public MetricBuilderBinomial( String[] domain, float[] thresholds ) {
@@ -64,12 +67,12 @@ public class ModelMetricsBinomial extends ModelMetricsSupervised {
       assert !Double.isNaN(_sumsqe);
 
       // Binomial classification -> compute AUC, draw ROC
-      double snd = ds[2];      // Probability of a TRUE
-      // TODO: Optimize this: just keep deltas from one CM to the next
-      for(int i = 0; i < ModelUtils.DEFAULT_THRESHOLDS.length; i++) {
-        int p = snd >= ModelUtils.DEFAULT_THRESHOLDS[i] ? 1 : 0; // Compute prediction based on threshold
-        _cms[i][iact][p]++;   // Increase matrix
-      }
+//      double snd = ds[2];      // Probability of a TRUE
+//      // TODO: Optimize this: just keep deltas from one CM to the next
+//      for(int i = 0; i < _thresholds.length; i++) {
+//        int p = snd >= _thresholds[i] ? 1 : 0; // Compute prediction based on threshold
+//        _cms[i][iact][p]++;   // Increase matrix
+//      }
 
       // Compute log loss
       final double eps = 1e-15;
@@ -85,15 +88,16 @@ public class ModelMetricsBinomial extends ModelMetricsSupervised {
 
     @Override public void reduce( MetricBuilder mb ) {
       super.reduce(mb);
-      ArrayUtils.add(_cms, ((MetricBuilderBinomial)mb)._cms);
+//      ArrayUtils.add(_cms, ((MetricBuilderBinomial)mb)._cms);
     }
 
-    public ModelMetrics makeModelMetrics( Model m, Frame f, double sigma) {
-      double logloss = Double.NaN;
+    public ModelMetrics makeModelMetrics(Model m, Frame f, Vec pred, double sigma) {
+      double logloss;
       if (sigma != 0.0) {
+        _thresholds = ((SupervisedModel)m).makeThresholds(null,pred);
+        _cms = new ConfusionMatrixBuilder(_thresholds).doAll(pred, f.lastVec())._cms;
         ConfusionMatrix[] cms = new ConfusionMatrix[_cms.length];
         for (int i = 0; i < cms.length; i++) cms[i] = new ConfusionMatrix(_cms[i], _domain);
-
         AUCData aucdata = new AUC(cms, _thresholds, _domain).data();
         double mse = _sumsqe / _count;
         logloss = _logloss / _count;
@@ -101,6 +105,32 @@ public class ModelMetricsBinomial extends ModelMetricsSupervised {
       } else {
         return m._output.addModelMetrics(new ModelMetricsBinomial(m, f, null, Double.NaN, Double.NaN, Double.NaN));
       }
+    }
+  }
+
+  static private class ConfusionMatrixBuilder extends MRTask<ConfusionMatrixBuilder> {
+    private final float[] _thresholds; //input
+    public final long[][][] _cms; //output
+
+    ConfusionMatrixBuilder(float[] thresholds) {
+      _thresholds = thresholds;
+      _cms = new long[_thresholds.length][2][2];
+    }
+
+    @Override public void map(Chunk p, Chunk a) {
+      for (int r = 0; r < p.len(); ++r) {
+        if (p.isNA(r) || a.isNA(r)) continue;
+        double pred = p.atd(r);
+        int iact = (int)a.atd(r);
+        for (int i = 0; i < _thresholds.length; i++) {
+          int pi = pred >= _thresholds[i] ? 1 : 0;
+          _cms[i][iact][pi]++;
+        }
+      }
+    }
+
+    @Override public void reduce(ConfusionMatrixBuilder cmb) {
+      ArrayUtils.add(_cms, cmb._cms);
     }
   }
 }

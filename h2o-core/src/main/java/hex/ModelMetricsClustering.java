@@ -3,6 +3,7 @@ package hex;
 import hex.ClusteringModel.ClusteringOutput;
 import hex.ClusteringModel.ClusteringParameters;
 import water.fvec.Frame;
+import water.fvec.Vec;
 import water.util.ArrayUtils;
 import water.util.TwoDimTable;
 
@@ -81,7 +82,7 @@ public class ModelMetricsClustering extends ModelMetricsUnsupervised {
     }
 
     @Override
-    public ModelMetrics makeModelMetrics(Model m, Frame f, double sigma) {
+    public ModelMetrics makeModelMetrics(Model m, Frame f, Vec pred, double sigma) {
       assert m instanceof ClusteringModel;
       ClusteringModel clm = (ClusteringModel) m;
       ModelMetricsClustering mm = new ModelMetricsClustering(m, f);
